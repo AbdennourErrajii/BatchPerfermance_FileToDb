@@ -3,22 +3,32 @@ package s2m.ftd.file_to_database.listeners;
 import org.springframework.batch.core.ChunkListener;
 import org.springframework.batch.core.scope.context.ChunkContext;
 
-public class CustomChunkListener implements ChunkListener{
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+public class CustomChunkListener implements ChunkListener {
+
+    private static final Logger logger = LoggerFactory.getLogger(CustomChunkListener.class);
 
     @Override
     public void beforeChunk(ChunkContext context) {
-        String threadName = Thread.currentThread().getName();
-        System.out.printf("[%s] Début du chunk (items précédents: %d)%n",
-                threadName,
+        logger.info("[{}] Début du chunk (items précédents: {})",
+                Thread.currentThread().getName(),
                 context.getStepContext().getStepExecution().getReadCount());
     }
 
     @Override
     public void afterChunk(ChunkContext context) {
-        String threadName = Thread.currentThread().getName();
-        System.out.printf("[%s] Fin du chunk (%d éléments traités)%n",
-                threadName,
+        logger.info("[{}] Fin du chunk ({} éléments traités)",
+                Thread.currentThread().getName(),
                 context.getStepContext().getStepExecution().getReadCount());
     }
 
+    @Override
+    public void afterChunkError(ChunkContext context) {
+        logger.error("[{}] Erreur lors du traitement du chunk (items traités: {})",
+                Thread.currentThread().getName(),
+                context.getStepContext().getStepExecution().getReadCount());
+    }
 }
+

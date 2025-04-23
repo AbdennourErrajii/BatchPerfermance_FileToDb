@@ -10,6 +10,8 @@ public class CustomStepListener implements StepExecutionListener {
 
     @Override
     public void beforeStep(StepExecution stepExecution) {
+        int availableProcessors = Runtime.getRuntime().availableProcessors();
+        System.out.println("Nombre de cœurs processeur disponibles : " + availableProcessors);
         log.info("Before Step - Thread: {}, Step: {} (id: {})",
                 Thread.currentThread().getName(),
                 stepExecution.getStepName(),

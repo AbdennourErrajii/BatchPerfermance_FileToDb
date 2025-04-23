@@ -10,16 +10,16 @@ public class CustomReaderListener implements ItemReadListener<Transaction> {
 
     @Override
     public void beforeRead() {
-        log.info("Preparing to read item...");
+        log.info("[{}] Avant la lecture d'un item", Thread.currentThread().getName());
     }
 
     @Override
     public void afterRead(Transaction item) {
-        log.info("Item read: " + item.getTransactionId());
+        log.info("[{}] Item lu : {}", Thread.currentThread().getName(), item);
     }
 
     @Override
     public void onReadError(Exception ex) {
-        log.error("Error reading item: " + ex.getMessage());
+        log.error("[{}] Erreur lors de la lecture d'un item : {}", Thread.currentThread().getName(), ex.getMessage());
     }
 }

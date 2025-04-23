@@ -13,6 +13,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
 import org.springframework.transaction.PlatformTransactionManager;
 import s2m.ftd.file_to_database.config.BatchProperties;
+import s2m.ftd.file_to_database.listeners.*;
 import s2m.ftd.file_to_database.model.Transaction;
 import s2m.ftd.file_to_database.services.TransactionCsvReader;
 import s2m.ftd.file_to_database.services.TransactionDbWriter;
@@ -67,7 +68,11 @@ public class CsvToDbConfigSingleThread {
                 .reader(transactionCsvReader)
                 .processor(transactionProcessor)
                 .writer(transactionWriter)
+                //.listener(new CustomStepListener())
+                //.listener(new CustomChunkListener())
                 //.listener(new CustomReaderListener())
+                //.listener(new CustomProcessorListener())
+                //.listener(new CustomWriterListener())
                 .build();
     }
 }

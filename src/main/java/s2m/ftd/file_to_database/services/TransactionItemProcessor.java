@@ -6,7 +6,7 @@ import s2m.ftd.file_to_database.model.Transaction;
 public class TransactionItemProcessor implements ItemProcessor<Transaction,Transaction> {
     @Override
     public Transaction process(Transaction item) throws Exception {
-        //log.info("ID: "+item.getTransactionId() +" | GRP : "+item.getGroupe());
+        log.info("ID: "+item.getTransactionId() +" | Thread : "+Thread.currentThread().getName());
         Thread.sleep(5);
         return item;
     }
