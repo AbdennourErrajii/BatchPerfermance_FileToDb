@@ -76,7 +76,7 @@ public class BatchConfig {
     }
     @Bean
     public Job CsvToDbJob() throws Exception {
-        return new JobBuilder("CsvToDbJob88", jobRepository)
+        return new JobBuilder("CsvToDbJob89", jobRepository)
                 .start(step1())
                 .build();
     }
