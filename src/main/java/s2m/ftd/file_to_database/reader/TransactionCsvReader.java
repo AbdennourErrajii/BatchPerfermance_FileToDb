@@ -22,7 +22,6 @@ public class TransactionCsvReader implements ItemReader<Transaction> , ItemStrea
         this.delegate.setLinesToSkip(1);
         this.delegate.setLineMapper(this.lineMapper());
         this.delegate.setStrict(true);
-        //this.delegate.open(new ExecutionContext());
     }
     private DefaultLineMapper<Transaction> lineMapper(){
         DefaultLineMapper<Transaction> lineMapper = new DefaultLineMapper<>();

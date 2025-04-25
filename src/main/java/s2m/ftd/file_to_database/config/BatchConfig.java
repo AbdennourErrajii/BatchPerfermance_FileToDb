@@ -14,6 +14,7 @@ import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.transaction.PlatformTransactionManager;
+import s2m.ftd.file_to_database.listener.CustomReaderListener;
 import s2m.ftd.file_to_database.model.Transaction;
 import s2m.ftd.file_to_database.processor.TransactionItemProcessor;
 import s2m.ftd.file_to_database.reader.TransactionCsvReader;
@@ -32,14 +33,9 @@ public class BatchConfig {
     @Value("${inputfilepath}")
     private String inputfilepath;
 
-    @Value("${threadCount}")
-    private int threadCount;
-
     @Value("${chunkSize}")
     private int chunkSize;
 
-    @Value("${gridSize}")
-    private int gridSize;
 
     // Configuration du Reader
     @Bean
@@ -62,20 +58,18 @@ public class BatchConfig {
 
     @Bean
     public Step step1() throws IOException {
-        return new StepBuilder("CsvToDb_Step", jobRepository)
+        return new StepBuilder("CsvToDb_SimpleStep", jobRepository)
                 .<Transaction, Transaction>chunk(chunkSize, transactionManager)
                 .reader(reader())
                 .processor(processor())
                 .writer(writer())
-                //.listener(new CustomStepListener())
-                //.listener(new CustomChunkListener())
-                //.listener(new CustomWriteListener())
+                .listener(new CustomReaderListener())
                 .build();
     }
     @Bean
     public Job CsvToDbJob() throws Exception {
-        return new JobBuilder("CsvToDbJob", jobRepository)
-                .incrementer(new RunIdIncrementer())
+        return new JobBuilder("CsvToDb_SimpleJob65", jobRepository)
+                //.incrementer(new RunIdIncrementer())
                 .start(step1())
                 .build();
     }
