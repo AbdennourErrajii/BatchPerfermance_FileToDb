@@ -20,14 +20,16 @@ import org.springframework.core.task.TaskExecutor;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.transaction.PlatformTransactionManager;
 import s2m.ftd.file_to_database.config.BatchProperties;
-import s2m.ftd.file_to_database.listener.CustomChunkListener;
 import s2m.ftd.file_to_database.listener.CustomReaderListener;
 import s2m.ftd.file_to_database.model.Transaction;
+import org.springframework.batch.integration.async.AsyncItemProcessor;
+import org.springframework.batch.integration.async.AsyncItemWriter;
 
 import javax.sql.DataSource;
 import java.beans.PropertyEditorSupport;
 import java.time.LocalDate;
 import java.util.Map;
+import java.util.concurrent.Future;
 
 @Configuration
 @RequiredArgsConstructor
@@ -88,7 +90,7 @@ public class CsvToDbConfig {
      * Configures the ItemWriter to write Transaction objects to the database.
      */
     @Bean
-    public JdbcBatchItemWriter<Transaction> itemWriter() {
+    public JdbcBatchItemWriter<Transaction> transactionDbWriter() {
         JdbcBatchItemWriter<Transaction> writer = new JdbcBatchItemWriter<>();
         writer.setDataSource(dataSource);
         writer.setSql("INSERT INTO transaction (transaction_id, groupe, carte_id, date_transaction, montant, " +
@@ -115,21 +117,39 @@ public class CsvToDbConfig {
     }
 
     /**
+     *  Process Transaction items asynchronously, delegating to the transactionProcessor and using the configured taskExecutor
+     */
+    @Bean
+    public AsyncItemProcessor<Transaction, Transaction> asyncItemProcessor() {
+        AsyncItemProcessor<Transaction, Transaction> asyncProcessor = new AsyncItemProcessor<>();
+        asyncProcessor.setDelegate(transactionProcessor());
+        asyncProcessor.setTaskExecutor(taskExecutor());
+        return asyncProcessor;
+    }
+
+
+    /**
+     * Write Transaction items asynchronously, delegating to the transactionDbWriter for database operations.
+     */
+    @Bean
+    public AsyncItemWriter<Transaction> asyncItemWriter() { // Inject delegate
+        AsyncItemWriter<Transaction> asyncWriter = new AsyncItemWriter<>();
+        asyncWriter.setDelegate(transactionDbWriter());
+        return asyncWriter;
+    }
+
+    /**
      * Configures the Step to read, process, and write Transaction objects.
      */
     @Bean
     public Step TransactionCsvToDbStep(
-            ItemReader<Transaction> transactionCsvReader,
-            ItemProcessor<Transaction, Transaction> transactionProcessor,
-            ItemWriter<Transaction> transactionWriter
     ) {
-        return new StepBuilder("MultiThreadTransactionStep", jobRepository)
-                .<Transaction, Transaction>chunk(batchProperties.getChunkSize(), transactionManager)
-                .reader(transactionCsvReader)
-                .processor(transactionProcessor)
-                .writer(transactionWriter)
-                .taskExecutor(taskExecutor())
-                .listener(new CustomChunkListener())
+        return new StepBuilder("AsyncProcessingTransactionStep", jobRepository)
+                .<Transaction, Future<Transaction>>chunk(batchProperties.getChunkSize(), transactionManager)
+                .reader(transactionCsvReader())
+                .processor(asyncItemProcessor())
+                .writer(asyncItemWriter())
+                .listener(new CustomReaderListener())
                 .build();
     }
 }

@@ -14,11 +14,11 @@ public class BatchConfig {
     @Bean
     public Job TransactionCsvToDbJob(
             JobRepository jobRepository,
-            @Qualifier("TransactionCsvToDbStep") Step simpleTransactionStep
+            @Qualifier("TransactionCsvToDbStep") Step TransactionCsvToDbStep
     ) {
-        return new JobBuilder("MultiThreadTransactionJob", jobRepository)
+        return new JobBuilder("AsyncProcessingTransactionJob", jobRepository)
                 .incrementer(new RunIdIncrementer())
-                .flow(simpleTransactionStep)
+                .flow(TransactionCsvToDbStep)
                 .end()
                 .build();
     }
