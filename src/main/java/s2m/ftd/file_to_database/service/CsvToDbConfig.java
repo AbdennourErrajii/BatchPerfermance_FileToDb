@@ -2,17 +2,20 @@ package s2m.ftd.file_to_database.service;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.batch.core.Step;
+import org.springframework.batch.core.configuration.annotation.StepScope;
+import org.springframework.batch.core.partition.support.Partitioner;
+import org.springframework.batch.core.partition.support.TaskExecutorPartitionHandler;
 import org.springframework.batch.core.repository.JobRepository;
 import org.springframework.batch.core.step.builder.StepBuilder;
 import org.springframework.batch.item.ItemProcessor;
 import org.springframework.batch.item.ItemReader;
-import org.springframework.batch.item.ItemWriter;
 import org.springframework.batch.item.database.BeanPropertyItemSqlParameterSourceProvider;
 import org.springframework.batch.item.database.JdbcBatchItemWriter;
 import org.springframework.batch.item.file.FlatFileItemReader;
 import org.springframework.batch.item.file.mapping.BeanWrapperFieldSetMapper;
 import org.springframework.batch.item.file.mapping.DefaultLineMapper;
 import org.springframework.batch.item.file.transform.DelimitedLineTokenizer;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.FileSystemResource;
@@ -21,8 +24,9 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.transaction.PlatformTransactionManager;
 import s2m.ftd.file_to_database.config.BatchProperties;
 import s2m.ftd.file_to_database.listener.CustomChunkListener;
-import s2m.ftd.file_to_database.listener.CustomReaderListener;
 import s2m.ftd.file_to_database.model.Transaction;
+import s2m.ftd.file_to_database.partition.FileSizePartitioner;
+import s2m.ftd.file_to_database.partition.LineRangeRecordSeparatorPolicy;
 
 import javax.sql.DataSource;
 import java.beans.PropertyEditorSupport;
@@ -42,12 +46,17 @@ public class CsvToDbConfig {
      * Configures the ItemReader to read Transaction objects from a CSV file.
      */
     @Bean
-    public ItemReader<Transaction> transactionCsvReader() {
+    @StepScope
+    public FlatFileItemReader<Transaction> transactionCsvReader(
+            @Value("#{stepExecutionContext['filePath']}") String filePath,
+            @Value("#{stepExecutionContext['startLine']}") Long startLine,
+            @Value("#{stepExecutionContext['endLine']}") Long endLine) {
         FlatFileItemReader<Transaction> reader = new FlatFileItemReader<>();
-        reader.setResource(new FileSystemResource(batchProperties.getInputFile()));
+        reader.setResource(new FileSystemResource(filePath));
         reader.setLineMapper(lineMapper());
-        reader.setLinesToSkip(1); // Skip header row
-        reader.setStrict(true); // Fail if the file is not found
+        reader.setLinesToSkip(startLine.intValue() == 1 ? 1 : 0); // Skip header only for first partition
+        reader.setRecordSeparatorPolicy(new LineRangeRecordSeparatorPolicy(startLine, endLine));
+        reader.setStrict(true);
         return reader;
     }
     /**
@@ -88,7 +97,7 @@ public class CsvToDbConfig {
      * Configures the ItemWriter to write Transaction objects to the database.
      */
     @Bean
-    public JdbcBatchItemWriter<Transaction> itemWriter() {
+    public JdbcBatchItemWriter<Transaction> transactionDbWriter() {
         JdbcBatchItemWriter<Transaction> writer = new JdbcBatchItemWriter<>();
         writer.setDataSource(dataSource);
         writer.setSql("INSERT INTO transaction (transaction_id, groupe, carte_id, date_transaction, montant, " +
@@ -115,21 +124,44 @@ public class CsvToDbConfig {
     }
 
     /**
-     * Configures the Step to read, process, and write Transaction objects.
+     * Handle the partitioned data
      */
+
     @Bean
-    public Step TransactionCsvToDbStep(
-            ItemReader<Transaction> transactionCsvReader,
-            ItemProcessor<Transaction, Transaction> transactionProcessor,
-            ItemWriter<Transaction> transactionWriter
-    ) {
-        return new StepBuilder("MultiThreadTransactionStep", jobRepository)
+    public Partitioner transactionPartitioner() {
+        return new FileSizePartitioner(new FileSystemResource(batchProperties.getInputFile()));
+    }
+
+    @Bean
+    public TaskExecutorPartitionHandler partitionHandler() {
+        TaskExecutorPartitionHandler handler = new TaskExecutorPartitionHandler();
+        handler.setTaskExecutor(taskExecutor());
+        handler.setStep(slaveStep());
+        handler.setGridSize(batchProperties.getPartitionCount());
+        return handler;
+    }
+
+    @Bean
+    public Step slaveStep() {
+        return new StepBuilder("slaveStep", jobRepository)
                 .<Transaction, Transaction>chunk(batchProperties.getChunkSize(), transactionManager)
-                .reader(transactionCsvReader)
-                .processor(transactionProcessor)
-                .writer(transactionWriter)
-                .taskExecutor(taskExecutor())
+                .reader(transactionCsvReader(null, null, null)) // Injected at runtime
+                .processor(transactionProcessor())
+                .writer(transactionDbWriter())
                 .listener(new CustomChunkListener())
                 .build();
+    }
+
+    @Bean
+    public Step masterStep() {
+        return new StepBuilder("masterStep", jobRepository)
+                .partitioner(slaveStep().getName(), transactionPartitioner())
+                .partitionHandler(partitionHandler())
+                .build();
+    }
+
+    @Bean
+    public Step transactionCsvToDbStep() {
+        return masterStep();
     }
 }
