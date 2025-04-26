@@ -5,15 +5,13 @@ import jakarta.persistence.Id;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import java.io.Serializable;
 import java.time.LocalDate;
 
 @Entity
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class Transaction implements Serializable {
-    private static final long serialVersionUID = 1L;
+public class Transaction{
     @Id
     private Long transactionId;
     private Long groupe;
