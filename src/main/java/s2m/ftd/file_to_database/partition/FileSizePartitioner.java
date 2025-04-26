@@ -16,37 +16,33 @@ import java.util.Map;
 public class FileSizePartitioner implements Partitioner {
     private final Resource resource;
 
+    @Override
     public Map<String, ExecutionContext> partition(int gridSize) {
         Map<String, ExecutionContext> partitions = new HashMap<>();
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(resource.getInputStream()))) {
-            // Lire le header et compter les lignes de données
-            reader.readLine(); // Skip header
-            long totalDataLines = reader.lines().count(); // Nombre de lignes de données (sans header)
+            reader.readLine();  // Skip the header
 
-            long linesPerPartition = totalDataLines / gridSize;
-            long remainder = totalDataLines % gridSize;
+            long totalLines = reader.lines().count();
+            long linesPerPartition = (long) Math.ceil((double) totalLines / gridSize);
 
-            long start = 1; // Première ligne de données (après header)
+            log.info("Total lines: {}. Lines per partition: {}", totalLines, linesPerPartition);
+
             for (int i = 0; i < gridSize; i++) {
                 ExecutionContext context = new ExecutionContext();
-                long end = start + linesPerPartition - 1;
-                if (i < remainder) end++;
+                long start = i * linesPerPartition + 1;
+                long end = Math.min((i + 1) * linesPerPartition, totalLines);
 
-                // Ajuster end pour ne pas dépasser les lignes de données
-                if (end > totalDataLines) end = totalDataLines;
-
-                // Les lignes dans le fichier commencent à 1 (après header)
                 context.putLong("startLine", start);
                 context.putLong("endLine", end);
-                context.putString("filePath", resource.getFile().getAbsolutePath());
                 partitions.put("partition_" + i, context);
+                context.putString("partitionName", "partition_" + i);
 
-                start = end + 1;
+                log.info("Partition {}: start line = {} , end line = {}", i, start, end);
             }
         } catch (IOException e) {
-            log.error("Erreur lors du partitionnement", e);
+            log.error("Error reading the file for partitioning", e);
+            throw new RuntimeException("Error during partitioning", e);
         }
-        log.info("******"+partitions);
         return partitions;
     }
 }

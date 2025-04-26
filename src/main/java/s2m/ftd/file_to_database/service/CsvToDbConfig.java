@@ -10,31 +10,23 @@ import org.springframework.batch.core.step.builder.StepBuilder;
 import org.springframework.batch.item.ExecutionContext;
 import org.springframework.batch.item.ItemProcessor;
 import org.springframework.batch.item.ItemReader;
+import org.springframework.batch.item.ItemStreamReader;
 import org.springframework.batch.item.database.BeanPropertyItemSqlParameterSourceProvider;
 import org.springframework.batch.item.database.JdbcBatchItemWriter;
-import org.springframework.batch.item.file.FlatFileItemReader;
-import org.springframework.batch.item.file.mapping.BeanWrapperFieldSetMapper;
-import org.springframework.batch.item.file.mapping.DefaultLineMapper;
-import org.springframework.batch.item.file.transform.DelimitedLineTokenizer;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.FileSystemResource;
-import org.springframework.core.io.Resource;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.transaction.PlatformTransactionManager;
 import s2m.ftd.file_to_database.config.BatchProperties;
-import s2m.ftd.file_to_database.listener.CustomChunkListener;
 import s2m.ftd.file_to_database.model.Transaction;
+import s2m.ftd.file_to_database.partition.CsvPartitionedItemReader;
 import s2m.ftd.file_to_database.partition.FileSizePartitioner;
-import s2m.ftd.file_to_database.partition.LineRangeRecordSeparatorPolicy;
+
 
 import javax.sql.DataSource;
-import java.beans.PropertyEditorSupport;
-import java.time.LocalDate;
-import java.util.Map;
-
 @Configuration
 @RequiredArgsConstructor
 public class CsvToDbConfig {
@@ -47,47 +39,19 @@ public class CsvToDbConfig {
     /**
      * Configures the ItemReader to read Transaction objects from a CSV file.
      */
+
     @Bean
     @StepScope
-    public FlatFileItemReader<Transaction> transactionCsvReader(
+    public ItemReader<Transaction> transactionCsvReader(
             @Value("#{stepExecutionContext['startLine']}") Long startLine,
             @Value("#{stepExecutionContext['endLine']}") Long endLine) {
-        FlatFileItemReader<Transaction> reader = new FlatFileItemReader<>();
-        reader.setResource(new FileSystemResource(batchProperties.getInputFile()));
-        reader.setLineMapper(lineMapper());
-        reader.setLinesToSkip(1); // Sauter le header
         ExecutionContext executionContext = new ExecutionContext();
         executionContext.putLong("startLine", startLine);
         executionContext.putLong("endLine", endLine);
-        reader.setRecordSeparatorPolicy(new LineRangeRecordSeparatorPolicy(executionContext));
-        reader.setStrict(false);
-        return reader;
+        return new CsvPartitionedItemReader(new FileSystemResource(batchProperties.getInputFile()), executionContext);
     }
-    /**
-     * Configures the LineMapper to map CSV lines to Transaction objects.
-     */
-    private DefaultLineMapper<Transaction> lineMapper() {
-        DefaultLineMapper<Transaction> lineMapper = new DefaultLineMapper<>();
-        DelimitedLineTokenizer lineTokenizer = new DelimitedLineTokenizer();
-        lineTokenizer.setNames(new String[]{
-                "transactionId", "groupe", "carteId", "dateTransaction",
-                "montant", "devise", "merchant", "pays", "typeCarte",
-                "statut", "canal", "sourceCompte", "destinationCompte"
-        });
-        BeanWrapperFieldSetMapper<Transaction> fieldSetMapper = new BeanWrapperFieldSetMapper<>();
-        fieldSetMapper.setTargetType(Transaction.class);
-        fieldSetMapper.setCustomEditors(Map.of(
-                LocalDate.class, new PropertyEditorSupport() {
-                    @Override
-                    public void setAsText(String text) {
-                        setValue(LocalDate.parse(text));
-                    }
-                }
-        ));
-        lineMapper.setLineTokenizer(lineTokenizer);
-        lineMapper.setFieldSetMapper(fieldSetMapper);
-        return lineMapper;
-    }
+
+
 
     /**
      * Configures the ItemProcessor to process Transaction objects.
@@ -152,9 +116,9 @@ public class CsvToDbConfig {
                 .reader(transactionCsvReader(null,null)) // Injected at runtime
                 .processor(transactionProcessor())
                 .writer(transactionDbWriter())
-                .listener(new CustomChunkListener())
                 .build();
     }
+
 
     @Bean
     public Step masterStep() {

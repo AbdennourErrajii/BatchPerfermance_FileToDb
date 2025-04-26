@@ -27,7 +27,7 @@ public class BatchProperties {
     /** Size of chunks for batch processing (default: 5000). */
     @Min(1)
     @Max(10_000)
-    private int chunkSize = 5000;
+    private int chunkSize = 5;
 
     /** Maximum number of items to skip on failure (default: 10). */
     @Min(1)
