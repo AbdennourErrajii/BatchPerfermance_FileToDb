@@ -16,8 +16,11 @@ import org.springframework.batch.item.file.transform.DelimitedLineTokenizer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.FileSystemResource;
+import org.springframework.core.task.TaskExecutor;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.transaction.PlatformTransactionManager;
 import s2m.ftd.file_to_database.config.BatchProperties;
+import s2m.ftd.file_to_database.listener.CustomChunkListener;
 import s2m.ftd.file_to_database.listener.CustomReaderListener;
 import s2m.ftd.file_to_database.model.Transaction;
 
@@ -96,6 +99,21 @@ public class CsvToDbConfig {
         return writer;
     }
 
+    @Bean
+    public TaskExecutor taskExecutor() {
+        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+        executor.setCorePoolSize(batchProperties.getThreadCount());
+        executor.setMaxPoolSize(batchProperties.getThreadCount());
+        executor.setThreadNamePrefix("partition-exec-");
+        executor.setThreadFactory(r -> {
+            Thread t = new Thread(r);
+            t.setDaemon(true);
+            return t;
+        });
+        executor.initialize();
+        return executor;
+    }
+
     /**
      * Configures the Step to read, process, and write Transaction objects.
      */
@@ -105,12 +123,13 @@ public class CsvToDbConfig {
             ItemProcessor<Transaction, Transaction> transactionProcessor,
             ItemWriter<Transaction> transactionWriter
     ) {
-        return new StepBuilder("simpleTransactionStep", jobRepository)
+        return new StepBuilder("MultiThreadTransactionStep", jobRepository)
                 .<Transaction, Transaction>chunk(batchProperties.getChunkSize(), transactionManager)
                 .reader(transactionCsvReader)
                 .processor(transactionProcessor)
                 .writer(transactionWriter)
-                //.listener(new CustomReaderListener())
+                .taskExecutor(taskExecutor())
+                .listener(new CustomChunkListener())
                 .build();
     }
 }

@@ -16,7 +16,7 @@ public class BatchConfig {
             JobRepository jobRepository,
             @Qualifier("TransactionCsvToDbStep") Step simpleTransactionStep
     ) {
-        return new JobBuilder("simpleTransactionJob", jobRepository)
+        return new JobBuilder("MultiThreadTransactionJob", jobRepository)
                 .incrementer(new RunIdIncrementer())
                 .flow(simpleTransactionStep)
                 .end()
