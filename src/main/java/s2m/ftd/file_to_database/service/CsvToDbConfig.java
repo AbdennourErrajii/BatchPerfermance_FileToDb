@@ -7,6 +7,7 @@ import org.springframework.batch.core.partition.support.Partitioner;
 import org.springframework.batch.core.partition.support.TaskExecutorPartitionHandler;
 import org.springframework.batch.core.repository.JobRepository;
 import org.springframework.batch.core.step.builder.StepBuilder;
+import org.springframework.batch.item.ExecutionContext;
 import org.springframework.batch.item.ItemProcessor;
 import org.springframework.batch.item.ItemReader;
 import org.springframework.batch.item.database.BeanPropertyItemSqlParameterSourceProvider;
@@ -19,6 +20,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.FileSystemResource;
+import org.springframework.core.io.Resource;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.transaction.PlatformTransactionManager;
@@ -48,15 +50,17 @@ public class CsvToDbConfig {
     @Bean
     @StepScope
     public FlatFileItemReader<Transaction> transactionCsvReader(
-            @Value("#{stepExecutionContext['filePath']}") String filePath,
             @Value("#{stepExecutionContext['startLine']}") Long startLine,
             @Value("#{stepExecutionContext['endLine']}") Long endLine) {
         FlatFileItemReader<Transaction> reader = new FlatFileItemReader<>();
-        reader.setResource(new FileSystemResource(filePath));
+        reader.setResource(new FileSystemResource(batchProperties.getInputFile()));
         reader.setLineMapper(lineMapper());
-        reader.setLinesToSkip(startLine.intValue() == 1 ? 1 : 0); // Skip header only for first partition
-        reader.setRecordSeparatorPolicy(new LineRangeRecordSeparatorPolicy(startLine, endLine));
-        reader.setStrict(true);
+        reader.setLinesToSkip(1); // Sauter le header
+        ExecutionContext executionContext = new ExecutionContext();
+        executionContext.putLong("startLine", startLine);
+        executionContext.putLong("endLine", endLine);
+        reader.setRecordSeparatorPolicy(new LineRangeRecordSeparatorPolicy(executionContext));
+        reader.setStrict(false);
         return reader;
     }
     /**
@@ -127,10 +131,6 @@ public class CsvToDbConfig {
      * Handle the partitioned data
      */
 
-    @Bean
-    public Partitioner transactionPartitioner() {
-        return new FileSizePartitioner(new FileSystemResource(batchProperties.getInputFile()));
-    }
 
     @Bean
     public TaskExecutorPartitionHandler partitionHandler() {
@@ -140,12 +140,16 @@ public class CsvToDbConfig {
         handler.setGridSize(batchProperties.getPartitionCount());
         return handler;
     }
+    @Bean
+    public Partitioner transactionPartitioner() {
+        return new FileSizePartitioner(new FileSystemResource(batchProperties.getInputFile()));
+    }
 
     @Bean
     public Step slaveStep() {
         return new StepBuilder("slaveStep", jobRepository)
                 .<Transaction, Transaction>chunk(batchProperties.getChunkSize(), transactionManager)
-                .reader(transactionCsvReader(null, null, null)) // Injected at runtime
+                .reader(transactionCsvReader(null,null)) // Injected at runtime
                 .processor(transactionProcessor())
                 .writer(transactionDbWriter())
                 .listener(new CustomChunkListener())
