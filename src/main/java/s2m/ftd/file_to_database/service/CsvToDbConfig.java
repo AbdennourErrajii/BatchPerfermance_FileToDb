@@ -149,7 +149,7 @@ public class CsvToDbConfig {
                 .reader(transactionCsvReader())
                 .processor(asyncItemProcessor())
                 .writer(asyncItemWriter())
-                .listener(new CustomReaderListener())
+                //.listener(new CustomReaderListener())
                 .build();
     }
 }
