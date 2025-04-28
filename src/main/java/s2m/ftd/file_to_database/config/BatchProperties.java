@@ -67,7 +67,7 @@ public class BatchProperties {
     /** Number of threads for parallel processing (default: 4). */
     @Min(1)
     @Max(16)
-    private int threadCount = 4;
+    private int threadCount = 5;
 
     /** Number of rows in the CSV file (default: 1000). */
     @Min(1)
