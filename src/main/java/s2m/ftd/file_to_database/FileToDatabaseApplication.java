@@ -6,6 +6,7 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.cloud.task.configuration.EnableTask;
+import org.springframework.context.annotation.Bean;
 import s2m.ftd.file_to_database.config.BatchProperties;
 import s2m.ftd.file_to_database.utils.CsvGenerator;
 

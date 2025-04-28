@@ -9,7 +9,7 @@ import java.util.Random;
 public class CsvGenerator {
     public static void generateCsv(String filePath, int rows) throws IOException {
         try (FileWriter writer = new FileWriter(filePath)) {
-            writer.append("transactionId,groupe,carteId,dateTransaction,montant,devise,merchant,pays,typeCarte,statut,canal,sourceCompte,destinationCompte\n");
+            writer.append("transactionId,carteId,dateTransaction,montant,devise,merchant,pays,typeCarte,statut,canal,sourceCompte,destinationCompte\n");
 
             Random rand = new Random();
             String[] devises = {"EUR", "USD", "MAD"};
@@ -21,19 +21,8 @@ public class CsvGenerator {
             int elementsPerGroup = rows / 4;
             for (int i = 0; i < rows; i++) {
                 Long transactionId = (long) (i + 1);
-                Long groupe;
-                if (i < elementsPerGroup) {
-                    groupe = 1L;
-                } else if (i < 2 * elementsPerGroup) {
-                    groupe = 2L;
-                } else if (i < 3 * elementsPerGroup) {
-                    groupe = 3L;
-                } else {
-                    groupe = 4L;
-                } ;
                 String carteId = "C" + (100000000 + rand.nextInt(900000000));
                 LocalDate dateTransaction = LocalDate.now().minusDays(rand.nextInt(60));
-
                 double montant = rand.nextDouble() * 5000;
                 String devise = devises[rand.nextInt(devises.length)];
                 String merchant = merchants[rand.nextInt(merchants.length)];
@@ -45,7 +34,6 @@ public class CsvGenerator {
                 String destinationCompte = "DC" + (10000000 + rand.nextInt(90000000));
 
                 writer.append(transactionId.toString()).append(",")
-                        .append(groupe.toString()).append(",")
                         .append(carteId).append(",")
                         .append(dateTransaction.toString()).append(",")
                         .append(String.format(Locale.US,"%.2f", montant)).append(",")

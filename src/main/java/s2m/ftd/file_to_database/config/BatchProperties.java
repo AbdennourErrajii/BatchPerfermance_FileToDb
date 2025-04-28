@@ -27,7 +27,7 @@ public class BatchProperties {
     /** Size of chunks for batch processing (default: 5000). */
     @Min(1)
     @Max(10_000)
-    private int chunkSize = 5;
+    private int chunkSize = 5000;
 
     /** Maximum number of items to skip on failure (default: 10). */
     @Min(1)
@@ -63,7 +63,7 @@ public class BatchProperties {
     /** Number of threads for parallel processing (default: 4). */
     @Min(1)
     @Max(16)
-    private int threadCount = 4;
+    private int threadCount = 5;
 
     /** Number of rows in the CSV file (default: 1000). */
     @Min(1)
@@ -72,6 +72,6 @@ public class BatchProperties {
     /** Number of partitions for parallel processing (default: 3). */
     @Min(1)
     @Max(128)
-    private int partitionCount = 4;
+    private int partitionCount = 20;
 
 }

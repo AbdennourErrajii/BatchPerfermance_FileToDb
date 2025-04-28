@@ -10,7 +10,6 @@ import org.springframework.batch.core.step.builder.StepBuilder;
 import org.springframework.batch.item.ExecutionContext;
 import org.springframework.batch.item.ItemProcessor;
 import org.springframework.batch.item.ItemReader;
-import org.springframework.batch.item.ItemStreamReader;
 import org.springframework.batch.item.database.BeanPropertyItemSqlParameterSourceProvider;
 import org.springframework.batch.item.database.JdbcBatchItemWriter;
 import org.springframework.beans.factory.annotation.Value;
@@ -68,9 +67,9 @@ public class CsvToDbConfig {
     public JdbcBatchItemWriter<Transaction> transactionDbWriter() {
         JdbcBatchItemWriter<Transaction> writer = new JdbcBatchItemWriter<>();
         writer.setDataSource(dataSource);
-        writer.setSql("INSERT INTO transaction (transaction_id, groupe, carte_id, date_transaction, montant, " +
+        writer.setSql("INSERT INTO transaction (transaction_id, carte_id, date_transaction, montant, " +
                 "devise, merchant, pays, type_carte, statut, canal, source_compte, destination_compte) " +
-                "VALUES (:transactionId, :groupe, :carteId, :dateTransaction, :montant, :devise, :merchant, " +
+                "VALUES (:transactionId, :carteId, :dateTransaction, :montant, :devise, :merchant, " +
                 ":pays, :typeCarte, :statut, :canal, :sourceCompte, :destinationCompte)");
         writer.setItemSqlParameterSourceProvider(new BeanPropertyItemSqlParameterSourceProvider<>());
         return writer;

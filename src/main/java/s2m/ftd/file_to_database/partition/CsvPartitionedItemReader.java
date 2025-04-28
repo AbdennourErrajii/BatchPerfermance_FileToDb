@@ -38,20 +38,12 @@ public class CsvPartitionedItemReader implements ItemReader<Transaction> {
         DefaultLineMapper<Transaction> lineMapper = new DefaultLineMapper<>();
         DelimitedLineTokenizer lineTokenizer = new DelimitedLineTokenizer();
         lineTokenizer.setNames(new String[]{
-                "transactionId", "groupe", "carteId", "dateTransaction",
+                "transactionId", "carteId", "dateTransaction",
                 "montant", "devise", "merchant", "pays", "typeCarte",
                 "statut", "canal", "sourceCompte", "destinationCompte"
         });
         BeanWrapperFieldSetMapper<Transaction> fieldSetMapper = new BeanWrapperFieldSetMapper<>();
         fieldSetMapper.setTargetType(Transaction.class);
-        fieldSetMapper.setCustomEditors(Map.of(
-                LocalDate.class, new PropertyEditorSupport() {
-                    @Override
-                    public void setAsText(String text) {
-                        setValue(LocalDate.parse(text));
-                    }
-                }
-        ));
         lineMapper.setLineTokenizer(lineTokenizer);
         lineMapper.setFieldSetMapper(fieldSetMapper);
         return lineMapper;

@@ -14,9 +14,8 @@ import java.time.LocalDate;
 public class Transaction{
     @Id
     private Long transactionId;
-    private Long groupe;
     private String carteId;
-    private LocalDate dateTransaction;
+    private String dateTransaction;
     private double montant;
     private String devise;
     private String merchant;
