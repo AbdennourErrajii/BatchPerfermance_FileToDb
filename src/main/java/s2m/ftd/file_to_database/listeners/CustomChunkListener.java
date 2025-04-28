@@ -1,4 +1,4 @@
-package s2m.ftd.file_to_database.listener;
+package s2m.ftd.file_to_database.listeners;
 
 import org.springframework.batch.core.ChunkListener;
 import org.springframework.batch.core.scope.context.ChunkContext;

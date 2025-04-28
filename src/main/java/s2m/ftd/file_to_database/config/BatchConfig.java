@@ -5,22 +5,47 @@ import org.springframework.batch.core.job.builder.JobBuilder;
 import org.springframework.batch.core.launch.support.RunIdIncrementer;
 import org.springframework.batch.core.repository.JobRepository;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 
 @Configuration
 public class BatchConfig {
+    @Value("${batch.mode}")
+    private String batchMode;
     @Bean
-    public Job TransactionCsvToDbJob(
+    public Job transactionCsvToDbJob(
             JobRepository jobRepository,
-            @Qualifier("TransactionCsvToDbStep") Step simpleTransactionStep
+            @Qualifier("transactionCsvToDbStep") Step transactionCsvToDbStep
     ) {
-        return new JobBuilder("simpleTransactionJob", jobRepository)
+        return new JobBuilder("transactionCsvToDbJob", jobRepository)
                 .incrementer(new RunIdIncrementer())
-                .flow(simpleTransactionStep)
+                .flow(transactionCsvToDbStep)
                 .end()
                 .build();
+    }
+    /**
+     * Conditionally create Step bean based on the batch mode configuration.
+     */
+    @Bean("transactionCsvToDbStep")
+    public Step transactionCsvToDbStep(
+            @Qualifier("singleThread") Step singleThreadStep,
+            @Qualifier("multiThread") Step multiThreadStep,
+            @Qualifier("asyncProcessing") Step asyncProcessingStep,
+            @Qualifier("partitioning") Step partitioningStep
+    ) {
+        switch (batchMode) {
+            case "multiThread":
+                return multiThreadStep;
+            case "asyncProcessing":
+                return asyncProcessingStep;
+            case "partitioning":
+                return partitioningStep;
+            case "singleThread":
+            default:
+                return singleThreadStep;
+        }
     }
 
 

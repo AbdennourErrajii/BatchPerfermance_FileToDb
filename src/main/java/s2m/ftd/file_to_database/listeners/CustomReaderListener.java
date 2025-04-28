@@ -1,7 +1,6 @@
-package s2m.ftd.file_to_database.listener;
+package s2m.ftd.file_to_database.listeners;
 
 
-import jakarta.annotation.Nullable;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.batch.core.ItemReadListener;
 import s2m.ftd.file_to_database.model.Transaction;
