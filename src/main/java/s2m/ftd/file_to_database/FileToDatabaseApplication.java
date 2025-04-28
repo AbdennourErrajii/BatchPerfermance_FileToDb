@@ -24,7 +24,7 @@ public class FileToDatabaseApplication {
 	/**
 	 * Generates a sample CSV file in the data folder.
 	 */
-	@Bean
+	//@Bean
 	public CommandLineRunner generateCsvAtStartup() {
 		return args -> {
 			log.info("Generating CSV file: {}", batchProperties.getInputFile());

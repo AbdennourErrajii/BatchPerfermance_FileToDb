@@ -26,7 +26,7 @@ import java.beans.PropertyEditorSupport;
 import java.time.LocalDate;
 import java.util.Map;
 
-//@Configuration
+@Configuration
 @RequiredArgsConstructor
 public class CsvToDbConfig {
 
@@ -54,20 +54,12 @@ public class CsvToDbConfig {
         DefaultLineMapper<Transaction> lineMapper = new DefaultLineMapper<>();
         DelimitedLineTokenizer lineTokenizer = new DelimitedLineTokenizer();
         lineTokenizer.setNames(new String[]{
-                "transactionId", "groupe", "carteId", "dateTransaction",
+                "transactionId", "carteId", "dateTransaction",
                 "montant", "devise", "merchant", "pays", "typeCarte",
                 "statut", "canal", "sourceCompte", "destinationCompte"
         });
         BeanWrapperFieldSetMapper<Transaction> fieldSetMapper = new BeanWrapperFieldSetMapper<>();
         fieldSetMapper.setTargetType(Transaction.class);
-        fieldSetMapper.setCustomEditors(Map.of(
-                LocalDate.class, new PropertyEditorSupport() {
-                    @Override
-                    public void setAsText(String text) {
-                        setValue(LocalDate.parse(text));
-                    }
-                }
-        ));
         lineMapper.setLineTokenizer(lineTokenizer);
         lineMapper.setFieldSetMapper(fieldSetMapper);
         return lineMapper;
@@ -88,9 +80,9 @@ public class CsvToDbConfig {
     public JdbcBatchItemWriter<Transaction> itemWriter() {
         JdbcBatchItemWriter<Transaction> writer = new JdbcBatchItemWriter<>();
         writer.setDataSource(dataSource);
-        writer.setSql("INSERT INTO transaction (transaction_id, groupe, carte_id, date_transaction, montant, " +
+        writer.setSql("INSERT INTO transaction (transaction_id, carte_id, date_transaction, montant, " +
                 "devise, merchant, pays, type_carte, statut, canal, source_compte, destination_compte) " +
-                "VALUES (:transactionId, :groupe, :carteId, :dateTransaction, :montant, :devise, :merchant, " +
+                "VALUES (:transactionId, :carteId, :dateTransaction, :montant, :devise, :merchant, " +
                 ":pays, :typeCarte, :statut, :canal, :sourceCompte, :destinationCompte)");
         writer.setItemSqlParameterSourceProvider(new BeanPropertyItemSqlParameterSourceProvider<>());
         return writer;
