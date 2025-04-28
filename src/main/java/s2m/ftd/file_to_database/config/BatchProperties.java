@@ -49,10 +49,6 @@ public class BatchProperties {
     @Max(5)
     private int backoffMultiplier = 2;
 
-    /** Number of partitions for parallel processing (default: 3). */
-    @Min(1)
-    @Max(128)
-    private int partitionSize = 3;
 
     /** Threshold to trigger partitioning (default: 20). */
     @Min(1)
@@ -67,7 +63,7 @@ public class BatchProperties {
     /** Number of threads for parallel processing (default: 4). */
     @Min(1)
     @Max(16)
-    private int threadCount = 4;
+    private int threadCount = 5;
 
     /** Number of rows in the CSV file (default: 1000). */
     @Min(1)
@@ -76,6 +72,6 @@ public class BatchProperties {
     /** Number of partitions for parallel processing (default: 3). */
     @Min(1)
     @Max(128)
-    private int partitionCount = 3;
+    private int partitionCount = 20;
 
 }
