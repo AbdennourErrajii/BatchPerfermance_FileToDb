@@ -30,10 +30,10 @@ public class BatchConfig {
      */
     @Bean("transactionCsvToDbStep")
     public Step transactionCsvToDbStep(
-            @Qualifier("singleThread") Step singleThreadStep,
-            @Qualifier("multiThread") Step multiThreadStep,
-            @Qualifier("asyncProcessing") Step asyncProcessingStep,
-            @Qualifier("partitioning") Step partitioningStep
+            @Qualifier("singleThreadStep") Step singleThreadStep,
+            @Qualifier("multiThreadStep") Step multiThreadStep,
+            @Qualifier("asyncProcessingStep") Step asyncProcessingStep,
+            @Qualifier("partitioningStep") Step partitioningStep
     ) {
         switch (batchMode) {
             case "multiThread":

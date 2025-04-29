@@ -7,8 +7,10 @@ import org.springframework.batch.core.step.builder.StepBuilder;
 import org.springframework.batch.item.ItemProcessor;
 import org.springframework.batch.item.ItemReader;
 import org.springframework.batch.item.ItemWriter;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
 import org.springframework.transaction.PlatformTransactionManager;
 import s2m.ftd.file_to_database.config.BatchProperties;
 import s2m.ftd.file_to_database.model.Transaction;
@@ -20,7 +22,7 @@ import javax.sql.DataSource;
 
 @Configuration
 @RequiredArgsConstructor
-public class CsvToDbConfig {
+public class CsvToDbConfigSingleThread {
 
     private final DataSource dataSource;
     private final JobRepository jobRepository;
@@ -30,7 +32,7 @@ public class CsvToDbConfig {
     /**
      * Configures the ItemReader to read Transaction objects from a CSV file.
      */
-    @Bean
+    @Bean("singleThreadTransactionCsvReader")
     public ItemReader<Transaction> transactionCsvReader() {
         return new TransactionCsvReader(batchProperties);
     }
@@ -38,7 +40,7 @@ public class CsvToDbConfig {
     /**
      * Configures the ItemProcessor to process Transaction objects.
      */
-    @Bean
+    @Bean("singleThreadTransactionProcessor")
     public ItemProcessor<Transaction, Transaction> transactionProcessor() {
         return new TransactionItemProcessor();
     }
@@ -46,7 +48,7 @@ public class CsvToDbConfig {
     /**
      * Configures the ItemWriter to write Transaction objects to the database.
      */
-    @Bean
+    @Bean("singleThreadTransactionWriter")
     public ItemWriter<Transaction> transactionWriter() {
         return new TransactionDbWriter(dataSource);
     }
@@ -54,11 +56,11 @@ public class CsvToDbConfig {
     /**
      * Configures the Step to read, process, and write Transaction objects.
      */
-    @Bean("singleThread")
-    public Step TransactionCsvToDbStep(
-            ItemReader<Transaction> transactionCsvReader,
-            ItemProcessor<Transaction, Transaction> transactionProcessor,
-            ItemWriter<Transaction> transactionWriter
+    @Bean("singleThreadStep")
+    public Step transactionCsvToDbStep(
+            @Qualifier("singleThreadTransactionCsvReader") ItemReader<Transaction> transactionCsvReader,
+            @Qualifier("singleThreadTransactionProcessor") ItemProcessor<Transaction, Transaction> transactionProcessor,
+            @Qualifier("singleThreadTransactionWriter") ItemWriter<Transaction> transactionWriter
     ) {
         return new StepBuilder("singleThreadTransactionStep", jobRepository)
                 .<Transaction, Transaction>chunk(batchProperties.getChunkSize(), transactionManager)

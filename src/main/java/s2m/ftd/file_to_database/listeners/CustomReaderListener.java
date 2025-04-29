@@ -15,7 +15,7 @@ public class CustomReaderListener implements ItemReadListener<Transaction> {
 
     @Override
     public void afterRead(Transaction item) {
-        log.info("Item read: " + item);
+        log.info("Item read: " + item.getTransactionId());
     }
 
     @Override

@@ -14,12 +14,12 @@ import org.springframework.batch.item.ItemWriter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.transaction.PlatformTransactionManager;
 import s2m.ftd.file_to_database.config.BatchProperties;
 import s2m.ftd.file_to_database.config.TaskExecutorConfig;
 import s2m.ftd.file_to_database.model.Transaction;
-import s2m.ftd.file_to_database.services.TransactionCsvReader;
 import s2m.ftd.file_to_database.services.TransactionDbWriter;
 import s2m.ftd.file_to_database.services.TransactionItemProcessor;
 
@@ -27,7 +27,7 @@ import javax.sql.DataSource;
 
 @Configuration
 @RequiredArgsConstructor
-public class CsvToDbConfig {
+public class CsvToDbConfigPartitioning {
 
     private final DataSource dataSource;
     private final JobRepository jobRepository;
@@ -39,7 +39,7 @@ public class CsvToDbConfig {
      * Configures the ItemReader to read Transaction objects from a CSV file.
      */
 
-    @Bean
+    @Bean("partitioningTransactionCsvReader")
     @StepScope
     public ItemReader<Transaction> transactionCsvReader(
             @Value("#{stepExecutionContext['startLine']}") Long startLine,
@@ -53,7 +53,7 @@ public class CsvToDbConfig {
     /**
      * Configures the ItemProcessor to process Transaction objects.
      */
-    @Bean
+    @Bean("partitioningTransactionProcessor")
     public ItemProcessor<Transaction, Transaction> transactionProcessor() {
         return new TransactionItemProcessor();
     }
@@ -61,7 +61,7 @@ public class CsvToDbConfig {
     /**
      * Configures the ItemWriter to write Transaction objects to the database.
      */
-    @Bean
+    @Bean("partitioningTransactionWriter")
     public ItemWriter<Transaction> transactionWriter() {
         return new TransactionDbWriter(dataSource);
     }
@@ -97,7 +97,7 @@ public class CsvToDbConfig {
                 .build();
     }
 
-    @Bean("partitioning")
+    @Bean("partitioningStep")
     public Step transactionCsvToDbStep() {
         return masterStep();
     }
