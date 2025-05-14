@@ -19,7 +19,7 @@ public class BatchConfig {
             JobRepository jobRepository,
             @Qualifier("transactionCsvToDbStep") Step transactionCsvToDbStep
     ) {
-        return new JobBuilder("transactionCsvToDbJob", jobRepository)
+        return new JobBuilder("transactionCsvToDbJo10", jobRepository)
                 .incrementer(new RunIdIncrementer())
                 .flow(transactionCsvToDbStep)
                 .end()

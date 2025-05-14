@@ -16,6 +16,7 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.transaction.PlatformTransactionManager;
 import s2m.ftd.file_to_database.config.BatchProperties;
 import s2m.ftd.file_to_database.config.TaskExecutorConfig;
+import s2m.ftd.file_to_database.customs.CustomItemProessor;
 import s2m.ftd.file_to_database.listeners.*;
 import s2m.ftd.file_to_database.model.Transaction;
 import s2m.ftd.file_to_database.services.TransactionCsvReader;
@@ -34,6 +35,7 @@ public class CsvToDbConfigAsyncProcessing {
     private final PlatformTransactionManager transactionManager;
     private final BatchProperties batchProperties;
     private final TaskExecutorConfig taskExecutorConfig;
+    private final TransactionItemProcessor transactionItemProcessor;
 
     /**
      * Configures the ItemReader to read Transaction objects from a CSV file.
@@ -47,8 +49,8 @@ public class CsvToDbConfigAsyncProcessing {
      * Configures the ItemProcessor to process Transaction objects.
      */
     @Bean("asyncProcessingTransactionProcessor")
-    public ItemProcessor<Transaction, Transaction> transactionProcessor() {
-        return new TransactionItemProcessor();
+    public CustomItemProessor<Transaction, Transaction> transactionProcessor()  {
+        return new CustomItemProessor<>(transactionItemProcessor);
     }
 
     /**

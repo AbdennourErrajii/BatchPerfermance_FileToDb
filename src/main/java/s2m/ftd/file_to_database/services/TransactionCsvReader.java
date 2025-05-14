@@ -16,7 +16,6 @@ import s2m.ftd.file_to_database.config.BatchProperties;
 public class TransactionCsvReader implements ItemReader<Transaction> , ItemStream {
 
     private final SynchronizedItemStreamReader<Transaction> synchronizedReader;
-
     public TransactionCsvReader(BatchProperties batchProperties) {
 
         // Configure le FlatFileItemReader

@@ -1,0 +1,21 @@
+transactionId,carteId,dateTransaction,montant,devise,merchant,pays,typeCarte,statut,canal,sourceCompte,destinationCompte
+1                    C636533365      2025-04-01                2089,16    MAD        Netflix                        US         VISA            PENDING    EN_LIGNE        SC36865197           DC86934485          
+2                    C517684718      2025-03-17                3304,62    MAD        Spotify                        ES         VISA            SUCCES     ATM             SC15637049           DC39343834          
+3                    C533622062      2025-04-03                1654,71    MAD        Netflix                        ES         VISA            SUCCES     MOBILE          SC57959901           DC97392562          
+4                    C756873462      2025-04-17                4318,24    USD        Netflix                        ES         VISA            PENDING    ATM             SC86248943           DC82455935          
+5                    C206613661      2025-03-02                3460,06    MAD        Spotify                        FR         MASTERCARD      PENDING    EN_LIGNE        SC34865984           DC64751956          
+6                    C962777428      2025-04-28                818,80     EUR        Uber                           US         AMEX            PENDING    EN_LIGNE        SC91173579           DC99161102          
+7                    C932929394      2025-03-26                2383,51    MAD        Spotify                        FR         AMEX            ECHEC      EN_LIGNE        SC97141598           DC80937119          
+8                    C892464781      2025-03-18                4333,51    EUR        Amazon                         DE         MASTERCARD      PENDING    MOBILE          SC93022086           DC81336016          
+9                    C562343896      2025-03-28                973,69     USD        Carrefour                      DE         VISA            PENDING    EN_LIGNE        SC92231622           DC70795563          
+10                   C388724321      2025-04-18                2717,98    USD        Amazon                         FR         VISA            ECHEC      ATM             SC76047621           DC54888295          
+11                   C803183713      2025-04-26                1480,93    MAD        Carrefour                      FR         AMEX            PENDING    MOBILE          SC35531407           DC75291767          
+12                   C853073844      2025-04-28                1597,41    EUR        Spotify                        DE         MASTERCARD      PENDING    MOBILE          SC15590715           DC95289783          
+13                   C374104175      2025-03-22                1880,71    EUR        Netflix                        MA         VISA            ECHEC      ATM             SC38270642           DC99924412          
+14                   C865125539      2025-04-13                2349,83    USD        Amazon                         US         AMEX            SUCCES     EN_LIGNE        SC62887870           DC77511802          
+15                   C731419119      2025-04-07                1955,60    EUR        Amazon                         DE         VISA            PENDING    MOBILE          SC80539693           DC62532247          
+16                   C612722151      2025-03-04                3900,50    USD        Uber                           US         VISA            SUCCES     EN_LIGNE        SC22200918           DC52099015          
+17                   C710601822      2025-04-16                3129,86    EUR        Netflix                        US         MASTERCARD      PENDING    MOBILE          SC11278264           DC16214376          
+18                   C564612335      2025-03-23                4322,82    USD        Carrefour                      US         AMEX            ECHEC      MOBILE          SC22008304           DC29745330          
+19                   C447015834      2025-04-10                2194,14    USD        Carrefour                      ES         MASTERCARD      PENDING    MOBILE          SC64868037           DC95473589          
+20                   C406334983      2025-03-29                1306,37    EUR        Carrefour                      US         AMEX            SUCCES     ATM             SC27003993           DC32356070          
